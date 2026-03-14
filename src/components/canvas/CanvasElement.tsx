@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Rnd } from 'react-rnd'
 import type { CanvasElement as CanvasElementType } from '../../types'
 import { useCanvasStore } from '../../store/canvasStore'
@@ -22,7 +22,8 @@ export function CanvasElement({ elementId, elements, scale }: Props) {
   const setHovered = useSelectionStore((s) => s.setHovered)
   const pushSnapshot = useHistoryStore((s) => s.pushSnapshot)
 
-  const isSelected = selectedIds.includes(elementId)
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds])
+  const isSelected = selectedSet.has(elementId)
   const isHovered = hoveredId === elementId && !isSelected
 
   const handleClick = useCallback(
@@ -32,6 +33,17 @@ export function CanvasElement({ elementId, elements, scale }: Props) {
     },
     [elementId, select]
   )
+
+  const snapshotPage = useCallback(() => {
+    const page = activePage()
+    if (page) {
+      pushSnapshot({
+        elements: structuredClone(page.elements),
+        rootIds: [...page.rootIds],
+        pageId: page.id,
+      })
+    }
+  }, [activePage, pushSnapshot])
 
   if (!element || !element.visible) return null
 
@@ -52,29 +64,11 @@ export function CanvasElement({ elementId, elements, scale }: Props) {
       scale={scale}
       disableDragging={element.locked}
       enableResizing={!element.locked}
-      onDragStart={() => {
-        const page = activePage()
-        if (page) {
-          pushSnapshot({
-            elements: JSON.parse(JSON.stringify(page.elements)),
-            rootIds: [...page.rootIds],
-            pageId: page.id,
-          })
-        }
-      }}
+      onDragStart={snapshotPage}
       onDragStop={(_e, d) => {
         updateElementStyle(elementId, { x: d.x, y: d.y })
       }}
-      onResizeStart={() => {
-        const page = activePage()
-        if (page) {
-          pushSnapshot({
-            elements: JSON.parse(JSON.stringify(page.elements)),
-            rootIds: [...page.rootIds],
-            pageId: page.id,
-          })
-        }
-      }}
+      onResizeStart={snapshotPage}
       onResizeStop={(_e, _dir, ref, _delta, pos) => {
         updateElementStyle(elementId, {
           width: parseInt(ref.style.width),

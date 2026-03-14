@@ -1,20 +1,12 @@
 import { useState } from 'react'
 import {
-  Type, Square, Image, Box, Component, LayoutTemplate,
   Eye, EyeOff, Lock, Unlock, ChevronRight, ChevronDown,
 } from 'lucide-react'
+import { Box } from 'lucide-react'
 import type { LayerNode } from '../../../types'
 import { useCanvasStore } from '../../../store/canvasStore'
 import { useSelectionStore } from '../../../store/selectionStore'
-
-const TYPE_ICONS: Record<string, React.ReactNode> = {
-  text: <Type size={11} />,
-  button: <Square size={11} />,
-  image: <Image size={11} />,
-  container: <Box size={11} />,
-  'component-instance': <Component size={11} />,
-  'block-instance': <LayoutTemplate size={11} />,
-}
+import { TYPE_ICONS_SM } from '../../../lib/typeIcons'
 
 interface Props {
   node: LayerNode
@@ -53,7 +45,9 @@ export function LayerRow({ node }: Props) {
         </span>
 
         {/* Type icon */}
-        <span className="shrink-0 text-[#9ca3af]">{TYPE_ICONS[node.type] ?? <Box size={11} />}</span>
+        <span className="shrink-0 text-[#9ca3af]">
+          {TYPE_ICONS_SM[node.type] ?? <Box size={11} />}
+        </span>
 
         {/* Name */}
         <span className="flex-1 text-xs truncate ml-1">{node.name}</span>

@@ -4,22 +4,18 @@ import { useSelectionStore } from '../store/selectionStore'
 import { useHistory } from './useHistory'
 
 export function useKeyboardShortcuts() {
-  const removeElement = useCanvasStore((s) => s.removeElement)
-  const duplicateElement = useCanvasStore((s) => s.duplicateElement)
-  const selectedIds = useSelectionStore((s) => s.selectedIds)
-  const select = useSelectionStore((s) => s.select)
-  const clearSelection = useSelectionStore((s) => s.clearSelection)
   const { undo, redo, snapshot } = useHistory()
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement
-      // Don't intercept when typing in an input
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
         return
       }
 
       const ctrl = e.ctrlKey || e.metaKey
+      const { selectedIds, select, clearSelection } = useSelectionStore.getState()
+      const { removeElement, duplicateElement } = useCanvasStore.getState()
 
       // Delete / Backspace
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.length > 0) {
@@ -64,5 +60,5 @@ export function useKeyboardShortcuts() {
 
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [selectedIds, removeElement, duplicateElement, clearSelection, select, undo, redo, snapshot])
+  }, [undo, redo, snapshot])
 }

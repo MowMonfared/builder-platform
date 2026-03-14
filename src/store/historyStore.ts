@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { CanvasElement } from '../types'
 
-interface CanvasSnapshot {
+export interface CanvasSnapshot {
   elements: Record<string, CanvasElement>
   rootIds: string[]
   pageId: string

@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, LayoutTemplate } from 'lucide-react'
 import { useLibraryStore } from '../../../store'
 import { useUiStore } from '../../../store'
-import { ComponentCard } from './ComponentCard'
-import { BlockCard } from './BlockCard'
+import { AssetCard } from './AssetCard'
+import { TYPE_ICONS_MD } from '../../../lib/typeIcons'
 
 export function AssetsPanel() {
   const assetsPanelTab = useUiStore((s) => s.assetsPanelTab)
@@ -19,7 +19,6 @@ export function AssetsPanel() {
     b.name.toLowerCase().includes(search.toLowerCase())
   )
 
-  // Group by category
   const componentGroups = filteredComponents.reduce<Record<string, typeof filteredComponents>>(
     (acc, c) => {
       if (!acc[c.category]) acc[c.category] = []
@@ -81,7 +80,13 @@ export function AssetsPanel() {
                 </div>
                 <div className="grid grid-cols-2 gap-1">
                   {items.map((comp) => (
-                    <ComponentCard key={comp.id} component={comp} />
+                    <AssetCard
+                      key={comp.id}
+                      id={`asset-component-${comp.id}`}
+                      dndData={{ type: 'ASSET_COMPONENT', componentDefId: comp.id }}
+                      icon={TYPE_ICONS_MD[comp.rootElement.type] ?? <LayoutTemplate size={14} />}
+                      name={comp.name}
+                    />
                   ))}
                 </div>
               </div>
@@ -101,7 +106,13 @@ export function AssetsPanel() {
                 </div>
                 <div className="grid grid-cols-2 gap-1">
                   {items.map((block) => (
-                    <BlockCard key={block.id} block={block} />
+                    <AssetCard
+                      key={block.id}
+                      id={`asset-block-${block.id}`}
+                      dndData={{ type: 'ASSET_BLOCK', blockDefId: block.id }}
+                      icon={<LayoutTemplate size={14} />}
+                      name={block.name}
+                    />
                   ))}
                 </div>
               </div>

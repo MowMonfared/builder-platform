@@ -219,7 +219,7 @@ export const useCanvasStore = create<CanvasState>()(
       const newId = generateId('el')
       const original = page.elements[id]
       const cloned: CanvasElement = {
-        ...JSON.parse(JSON.stringify(original)),
+        ...structuredClone(original),
         id: newId,
         name: `${original.name} copy`,
         style: {

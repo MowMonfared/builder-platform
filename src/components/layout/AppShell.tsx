@@ -2,6 +2,7 @@ import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { useState, useCallback } from 'react'
 import { TopToolbar } from '../toolbar/TopToolbar'
+import { LeftSidebar } from './LeftSidebar'
 import { LeftPanel } from './LeftPanel'
 import { RightPanel } from './RightPanel'
 import { Canvas } from '../canvas/Canvas'
@@ -97,6 +98,7 @@ export function AppShell() {
       <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#f0f2f4]">
         <TopToolbar />
         <div className="flex flex-1 overflow-hidden">
+          <LeftSidebar />
           <LeftPanel />
           <Canvas />
           <RightPanel />

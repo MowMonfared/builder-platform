@@ -4,11 +4,11 @@ import { CSS } from '@dnd-kit/utilities'
 interface Props {
   id: string
   dndData: Record<string, unknown>
-  icon: React.ReactNode
+  preview: React.ReactNode
   name: string
 }
 
-export function AssetCard({ id, dndData, icon, name }: Props) {
+export function AssetCard({ id, dndData, preview, name }: Props) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
     data: dndData,
@@ -23,13 +23,18 @@ export function AssetCard({ id, dndData, icon, name }: Props) {
       }}
       {...listeners}
       {...attributes}
-      className="flex flex-col items-center gap-1 p-2 rounded cursor-grab active:cursor-grabbing hover:bg-[#f0f2f4] group"
+      className="flex flex-col gap-1.5 p-2 rounded-lg cursor-grab active:cursor-grabbing hover:bg-[#f0f2f4] group"
       title={name}
     >
-      <div className="w-full h-14 rounded bg-[#f3f4f6] border border-[#e5e7eb] flex items-center justify-center text-[#6b7280] group-hover:border-[#d1d5db]">
-        {icon}
+      {/* Preview box */}
+      <div className="w-full rounded-md bg-[#f8f9fa] border border-[#e5e7eb] group-hover:border-[#d1d5db] overflow-hidden flex items-center justify-center p-3"
+        style={{ minHeight: 80 }}>
+        <div className="w-full pointer-events-none select-none" style={{ transform: 'scale(0.72)', transformOrigin: 'center center' }}>
+          {preview}
+        </div>
       </div>
-      <span className="text-[#374151] text-[10px] text-center w-full truncate leading-tight">
+      {/* Name */}
+      <span className="text-[#374151] text-[11px] font-medium text-center w-full truncate leading-tight px-0.5">
         {name}
       </span>
     </div>

@@ -3,6 +3,7 @@ import { Search, LayoutTemplate } from 'lucide-react'
 import { useLibraryStore } from '../../../store'
 import { useUiStore } from '../../../store'
 import { AssetCard } from './AssetCard'
+import { COMPONENT_PREVIEWS } from './ShadcnPreview'
 import { TYPE_ICONS_MD } from '../../../lib/typeIcons'
 
 export function AssetsPanel() {
@@ -74,17 +75,22 @@ export function AssetsPanel() {
         {assetsPanelTab === 'components' && (
           <div>
             {Object.entries(componentGroups).map(([category, items]) => (
-              <div key={category} className="mb-3">
+              <div key={category} className="mb-4">
                 <div className="text-[#9ca3af] text-[10px] font-semibold uppercase tracking-wider px-1 py-1.5">
                   {category}
                 </div>
-                <div className="grid grid-cols-2 gap-1">
+                <div className="grid grid-cols-2 gap-1.5">
                   {items.map((comp) => (
                     <AssetCard
                       key={comp.id}
                       id={`asset-component-${comp.id}`}
                       dndData={{ type: 'ASSET_COMPONENT', componentDefId: comp.id }}
-                      icon={TYPE_ICONS_MD[comp.rootElement.type] ?? <LayoutTemplate size={14} />}
+                      preview={
+                        COMPONENT_PREVIEWS[comp.id] ??
+                        <div className="flex items-center justify-center text-[#9ca3af]">
+                          {TYPE_ICONS_MD[comp.rootElement.type] ?? <LayoutTemplate size={14} />}
+                        </div>
+                      }
                       name={comp.name}
                     />
                   ))}
@@ -100,17 +106,17 @@ export function AssetsPanel() {
         {assetsPanelTab === 'blocks' && (
           <div>
             {Object.entries(blockGroups).map(([category, items]) => (
-              <div key={category} className="mb-3">
+              <div key={category} className="mb-4">
                 <div className="text-[#9ca3af] text-[10px] font-semibold uppercase tracking-wider px-1 py-1.5">
                   {category}
                 </div>
-                <div className="grid grid-cols-2 gap-1">
+                <div className="grid grid-cols-2 gap-1.5">
                   {items.map((block) => (
                     <AssetCard
                       key={block.id}
                       id={`asset-block-${block.id}`}
                       dndData={{ type: 'ASSET_BLOCK', blockDefId: block.id }}
-                      icon={<LayoutTemplate size={14} />}
+                      preview={<LayoutTemplate size={20} className="text-[#9ca3af]" />}
                       name={block.name}
                     />
                   ))}

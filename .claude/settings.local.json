@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"D:/Web Dev/04 Practice/builder-platform\")",
+      "Bash(npm create:*)",
+      "Bash(npx create-vite@latest . --template react-ts --force)"
+    ]
+  }
+}

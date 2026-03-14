@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #f0f2f4;
+  color: #111827;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Panel input styles */
+.prop-input {
+  @apply w-full bg-[#f3f4f6] text-[#111827] text-xs px-2 py-1 rounded border border-[#e5e7eb]
+    focus:outline-none focus:border-[#0d99ff] hover:border-[#d1d5db];
+}
+
+.prop-label {
+  @apply text-[#6b7280] text-xs leading-none;
+}
+
+/* Canvas selection ring */
+.canvas-selected {
+  outline: 2px solid #0d99ff;
+  outline-offset: -1px;
+}
+
+/* No-select utility */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}

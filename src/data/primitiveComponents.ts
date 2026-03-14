@@ -2,7 +2,7 @@ import type { ComponentDefinition } from '../types'
 
 const ts = '2024-01-01T00:00:00.000Z'
 
-/** Helper to create a shadcn component definition that drops a container onto the canvas */
+/** Helper to create a shadcn component definition */
 function shadcn(id: string, name: string, category: string, w: number, h: number): ComponentDefinition {
   return {
     id,
@@ -12,7 +12,8 @@ function shadcn(id: string, name: string, category: string, w: number, h: number
     propSchema: [],
     rootElement: {
       id: `${id}_root`,
-      type: 'container',
+      type: 'shadcn',
+      shadcnId: id,
       name,
       locked: false,
       visible: true,
@@ -21,20 +22,9 @@ function shadcn(id: string, name: string, category: string, w: number, h: number
       style: {
         x: 0, y: 0,
         width: w, height: h,
-        backgroundColor: '#ffffff',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderColor: '#e5e7eb',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        justifyContent: 'flex-start',
-        gap: 8,
-        paddingTop: 16, paddingRight: 16, paddingBottom: 16, paddingLeft: 16,
         opacity: 1, rotation: 0,
       },
-    },
+    } as import('../types').ShadcnElement,
     createdAt: ts,
     updatedAt: ts,
   }

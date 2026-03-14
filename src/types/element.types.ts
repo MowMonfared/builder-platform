@@ -49,6 +49,7 @@ export type ElementType =
   | 'button'
   | 'image'
   | 'container'
+  | 'shadcn'
   | 'component-instance'
   | 'block-instance'
 
@@ -91,6 +92,11 @@ export interface ComponentInstanceElement extends BaseElement {
   propOverrides: Record<string, unknown>
 }
 
+export interface ShadcnElement extends BaseElement {
+  type: 'shadcn'
+  shadcnId: string
+}
+
 export interface BlockInstanceElement extends BaseElement {
   type: 'block-instance'
   blockDefId: string
@@ -102,5 +108,6 @@ export type CanvasElement =
   | ButtonElement
   | ImageElement
   | ContainerElement
+  | ShadcnElement
   | ComponentInstanceElement
   | BlockInstanceElement

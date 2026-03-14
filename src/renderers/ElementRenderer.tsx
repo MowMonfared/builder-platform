@@ -3,6 +3,7 @@ import { TextRenderer } from './renderers/TextRenderer'
 import { ButtonRenderer } from './renderers/ButtonRenderer'
 import { ImageRenderer } from './renderers/ImageRenderer'
 import { ContainerRenderer } from './renderers/ContainerRenderer'
+import { ShadcnCanvasRenderer } from './ShadcnCanvasRenderer'
 
 interface Props {
   element: CanvasElement
@@ -26,22 +27,17 @@ export function ElementRenderer({ element, elements, renderChild }: Props) {
           renderChild={renderChild}
         />
       )
+    case 'shadcn':
+      return <ShadcnCanvasRenderer element={element} />
     case 'component-instance':
     case 'block-instance':
-      // Rendered as a container placeholder for now
       return (
         <div
           style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#f3f4f6',
-            border: '1px dashed #9ca3af',
-            fontSize: 12,
-            color: '#6b7280',
-            fontFamily: 'Inter, sans-serif',
+            width: '100%', height: '100%', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            backgroundColor: '#f3f4f6', border: '1px dashed #9ca3af',
+            fontSize: 12, color: '#6b7280', fontFamily: 'Inter, sans-serif',
           }}
         >
           {element.name}

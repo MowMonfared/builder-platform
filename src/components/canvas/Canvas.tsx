@@ -63,7 +63,12 @@ export function Canvas() {
         setNodeRef(node)
       }}
       className="relative flex-1 overflow-hidden"
-      style={{ backgroundColor: '#e8eaed', cursor: 'default' }}
+      style={{
+        backgroundColor: '#f8f8f8',
+        backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.18) 1px, transparent 1px)',
+        backgroundSize: '20px 20px',
+        cursor: 'default',
+      }}
       onClick={handleBackgroundClick}
     >
       {/* Grid overlay */}

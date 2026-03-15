@@ -27,7 +27,7 @@ interface UiState {
 }
 
 export const useUiStore = create<UiState>()((set) => ({
-  leftPanelTab: 'assets',
+  leftPanelTab: 'layers',
   assetsPanelTab: 'components',
   rightPanelTab: 'design',
   gridEnabled: false,

@@ -8,8 +8,8 @@ type SidebarItem = {
 }
 
 const ITEMS: SidebarItem[] = [
-  { id: 'assets', label: 'Assets', icon: <CirclePlus size={18} strokeWidth={1.5} /> },
   { id: 'layers', label: 'Layers', icon: <Layers size={18} strokeWidth={1.5} /> },
+  { id: 'assets', label: 'Assets', icon: <CirclePlus size={18} strokeWidth={1.5} /> },
 ]
 
 export function LeftSidebar() {

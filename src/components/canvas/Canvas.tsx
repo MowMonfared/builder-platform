@@ -6,6 +6,7 @@ import { useUiStore } from '../../store/uiStore'
 import { useCanvasZoom } from '../../hooks/useCanvasZoom'
 import { CanvasElement } from './CanvasElement'
 import { ArtboardHandles } from './ArtboardHandles'
+import { CanvasToolbar } from './CanvasToolbar'
 
 export function Canvas() {
   const viewportRef = useRef<HTMLDivElement | null>(null)
@@ -243,6 +244,9 @@ export function Canvas() {
           pageId={page.id}
         />
       )}
+
+      {/* Floating tool toolbar */}
+      <CanvasToolbar />
 
       {/* Zoom level indicator */}
       <div

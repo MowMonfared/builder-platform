@@ -4,9 +4,11 @@ type LeftPanelTab = 'assets' | 'layers'
 type AssetsPanelTab = 'components' | 'blocks'
 type RightPanelTab = 'design' | 'component-props'
 type CurrentView = 'home' | 'canvas'
+export type ActiveTool = 'select' | 'frame' | 'rectangle' | 'text' | 'image' | 'component'
 
 interface UiState {
   currentView: CurrentView
+  activeTool: ActiveTool
   leftPanelTab: LeftPanelTab
   assetsPanelTab: AssetsPanelTab
   rightPanelTab: RightPanelTab
@@ -18,6 +20,7 @@ interface UiState {
   rightPanelWidth: number
 
   setCurrentView: (view: CurrentView) => void
+  setActiveTool: (tool: ActiveTool) => void
   setLeftPanelTab: (tab: LeftPanelTab) => void
   setAssetsPanelTab: (tab: AssetsPanelTab) => void
   setRightPanelTab: (tab: RightPanelTab) => void
@@ -31,6 +34,7 @@ interface UiState {
 
 export const useUiStore = create<UiState>()((set) => ({
   currentView: 'home',
+  activeTool: 'select',
   leftPanelTab: 'layers',
   assetsPanelTab: 'components',
   rightPanelTab: 'design',
@@ -42,6 +46,7 @@ export const useUiStore = create<UiState>()((set) => ({
   rightPanelWidth: 280,
 
   setCurrentView: (view) => set({ currentView: view }),
+  setActiveTool: (tool) => set({ activeTool: tool }),
   setLeftPanelTab: (tab) => set({ leftPanelTab: tab }),
   setAssetsPanelTab: (tab) => set({ assetsPanelTab: tab }),
   setRightPanelTab: (tab) => set({ rightPanelTab: tab }),

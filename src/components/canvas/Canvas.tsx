@@ -1,10 +1,11 @@
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback, useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { useCanvasStore } from '../../store/canvasStore'
 import { useSelectionStore } from '../../store/selectionStore'
 import { useUiStore } from '../../store/uiStore'
 import { useCanvasZoom } from '../../hooks/useCanvasZoom'
 import { CanvasElement } from './CanvasElement'
+import { ArtboardHandles } from './ArtboardHandles'
 
 export function Canvas() {
   const viewportRef = useRef<HTMLDivElement | null>(null)
@@ -12,8 +13,11 @@ export function Canvas() {
   const activePageId = useCanvasStore((s) => s.activePageId)
   const canvasTransform = useCanvasStore((s) => s.canvasTransform)
   const setCanvasTransform = useCanvasStore((s) => s.setCanvasTransform)
+  const selectedIds = useSelectionStore((s) => s.selectedIds)
   const clearSelection = useSelectionStore((s) => s.clearSelection)
   const gridEnabled = useUiStore((s) => s.gridEnabled)
+
+  const [pageSelected, setPageSelected] = useState(false)
 
   const page = activePage()
   const { handleWheel, handleMiddleMouseDown, handleMouseMove, handleMouseUp } =
@@ -44,7 +48,7 @@ export function Canvas() {
     }
   }, [handleWheel, handleMiddleMouseDown, handleMouseMove, handleMouseUp])
 
-  // Center the artboard at 50% zoom whenever the active project changes
+  // Center artboard at 50% zoom when active project changes
   useEffect(() => {
     const el = viewportRef.current
     const pg = useCanvasStore.getState().activePage()
@@ -53,12 +57,31 @@ export function Canvas() {
     const offsetX = (el.offsetWidth - pg.canvasWidth * scale) / 2
     const offsetY = Math.max(40, (el.offsetHeight - pg.canvasHeight * scale) / 4)
     setCanvasTransform({ scale, offsetX, offsetY })
+    setPageSelected(false)
   }, [activePageId, setCanvasTransform])
 
-  const handleBackgroundClick = useCallback(
+  // Deselect page when an element is selected
+  useEffect(() => {
+    if (selectedIds.length > 0) setPageSelected(false)
+  }, [selectedIds])
+
+  // Click on the viewport background (outside artboard)
+  const handleViewportClick = useCallback(
     (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) {
         clearSelection()
+        setPageSelected(false)
+      }
+    },
+    [clearSelection]
+  )
+
+  // Click on artboard background (not on an element)
+  const handleArtboardClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget) {
+        clearSelection()
+        setPageSelected(true)
       }
     },
     [clearSelection]
@@ -68,6 +91,12 @@ export function Canvas() {
 
   const { scale, offsetX, offsetY } = canvasTransform
   const gridSize = 8
+
+  // Screen-space rect of the artboard (for selection overlay)
+  const artboardScreenLeft = offsetX
+  const artboardScreenTop = offsetY
+  const artboardScreenW = page.canvasWidth * scale
+  const artboardScreenH = page.canvasHeight * scale
 
   return (
     <div
@@ -82,7 +111,7 @@ export function Canvas() {
         backgroundSize: '20px 20px',
         cursor: 'default',
       }}
-      onClick={handleBackgroundClick}
+      onClick={handleViewportClick}
     >
       {/* Grid overlay */}
       {gridEnabled && (
@@ -134,11 +163,11 @@ export function Canvas() {
             width: page.canvasWidth,
             height: page.canvasHeight,
             backgroundColor: page.background,
-            border: '1px solid rgba(0,0,0,0.1)',
+            border: pageSelected ? 'none' : '1px solid rgba(0,0,0,0.1)',
             borderRadius: 4,
             overflow: 'visible',
           }}
-          onClick={handleBackgroundClick}
+          onClick={handleArtboardClick}
         >
           {/* Drop indicator */}
           {isOver && (
@@ -165,6 +194,21 @@ export function Canvas() {
           ))}
         </div>
       </div>
+
+      {/* Artboard selection overlay (rendered at screen coords, outside scale transform) */}
+      {pageSelected && (
+        <ArtboardHandles
+          left={artboardScreenLeft}
+          top={artboardScreenTop}
+          width={artboardScreenW}
+          height={artboardScreenH}
+          scale={scale}
+          pageName={page.name}
+          canvasWidth={page.canvasWidth}
+          canvasHeight={page.canvasHeight}
+          pageId={page.id}
+        />
+      )}
 
       {/* Zoom level indicator */}
       <div

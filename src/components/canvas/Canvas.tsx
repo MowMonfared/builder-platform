@@ -9,7 +9,9 @@ import { CanvasElement } from './CanvasElement'
 export function Canvas() {
   const viewportRef = useRef<HTMLDivElement | null>(null)
   const activePage = useCanvasStore((s) => s.activePage)
+  const activePageId = useCanvasStore((s) => s.activePageId)
   const canvasTransform = useCanvasStore((s) => s.canvasTransform)
+  const setCanvasTransform = useCanvasStore((s) => s.setCanvasTransform)
   const clearSelection = useSelectionStore((s) => s.clearSelection)
   const gridEnabled = useUiStore((s) => s.gridEnabled)
 
@@ -41,6 +43,17 @@ export function Canvas() {
       window.removeEventListener('mouseup', mouseUpHandler)
     }
   }, [handleWheel, handleMiddleMouseDown, handleMouseMove, handleMouseUp])
+
+  // Center the artboard at 50% zoom whenever the active project changes
+  useEffect(() => {
+    const el = viewportRef.current
+    const pg = useCanvasStore.getState().activePage()
+    if (!el || !pg) return
+    const scale = 0.5
+    const offsetX = (el.offsetWidth - pg.canvasWidth * scale) / 2
+    const offsetY = Math.max(40, (el.offsetHeight - pg.canvasHeight * scale) / 4)
+    setCanvasTransform({ scale, offsetX, offsetY })
+  }, [activePageId, setCanvasTransform])
 
   const handleBackgroundClick = useCallback(
     (e: React.MouseEvent) => {

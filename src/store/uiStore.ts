@@ -3,8 +3,10 @@ import { create } from 'zustand'
 type LeftPanelTab = 'assets' | 'layers'
 type AssetsPanelTab = 'components' | 'blocks'
 type RightPanelTab = 'design' | 'component-props'
+type CurrentView = 'home' | 'canvas'
 
 interface UiState {
+  currentView: CurrentView
   leftPanelTab: LeftPanelTab
   assetsPanelTab: AssetsPanelTab
   rightPanelTab: RightPanelTab
@@ -15,6 +17,7 @@ interface UiState {
   leftPanelWidth: number
   rightPanelWidth: number
 
+  setCurrentView: (view: CurrentView) => void
   setLeftPanelTab: (tab: LeftPanelTab) => void
   setAssetsPanelTab: (tab: AssetsPanelTab) => void
   setRightPanelTab: (tab: RightPanelTab) => void
@@ -27,6 +30,7 @@ interface UiState {
 }
 
 export const useUiStore = create<UiState>()((set) => ({
+  currentView: 'home',
   leftPanelTab: 'layers',
   assetsPanelTab: 'components',
   rightPanelTab: 'design',
@@ -37,6 +41,7 @@ export const useUiStore = create<UiState>()((set) => ({
   leftPanelWidth: 240,
   rightPanelWidth: 280,
 
+  setCurrentView: (view) => set({ currentView: view }),
   setLeftPanelTab: (tab) => set({ leftPanelTab: tab }),
   setAssetsPanelTab: (tab) => set({ assetsPanelTab: tab }),
   setRightPanelTab: (tab) => set({ rightPanelTab: tab }),

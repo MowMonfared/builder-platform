@@ -1,6 +1,6 @@
 import {
   Undo2, Redo2, Grid3X3, Magnet, ZoomIn, ZoomOut, RotateCcw,
-  Eye, Plus, Trash2,
+  Eye, Plus, X, Home,
 } from 'lucide-react'
 import { useCanvasStore } from '../../store/canvasStore'
 import { useUiStore } from '../../store/uiStore'
@@ -21,6 +21,7 @@ export function TopToolbar() {
   const toggleGrid = useUiStore((s) => s.toggleGrid)
   const toggleSnap = useUiStore((s) => s.toggleSnap)
   const togglePreview = useUiStore((s) => s.togglePreview)
+  const setCurrentView = useUiStore((s) => s.setCurrentView)
   const { undo, redo, canUndo, canRedo } = useHistory()
 
   const zoomIn = () =>
@@ -28,44 +29,78 @@ export function TopToolbar() {
   const zoomOut = () =>
     setCanvasTransform({ scale: Math.max(0.1, canvasTransform.scale / 1.2) })
 
+  function closeTab(pageId: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    // If last tab, save and go home; otherwise delete and stay on another tab
+    if (pages.length === 1) {
+      setCurrentView('home')
+    } else {
+      deletePage(pageId)
+    }
+  }
+
   return (
     <div className="flex items-center h-10 bg-white border-b border-[#e5e7eb] px-2 gap-1 shrink-0 no-select">
+      {/* Home button */}
+      <button
+        onClick={() => setCurrentView('home')}
+        className="p-1.5 text-[#6b7280] hover:text-[#111827] hover:bg-[#f3f4f6] rounded"
+        title="Go to home"
+      >
+        <Home size={14} />
+      </button>
+
       {/* Brand */}
-      <div className="text-[#111827] font-semibold text-sm mr-3 px-1">
+      <div className="text-[#111827] font-semibold text-sm px-1 mr-2">
         <span className="text-[#0d99ff]">⬡</span> Builder
       </div>
 
-      {/* Page tabs */}
+      {/* Separator */}
+      <div className="w-px h-5 bg-[#e5e7eb] mx-0.5" />
+
+      {/* Project tabs */}
       <div className="flex items-center gap-0.5 flex-1 overflow-x-auto">
-        {pages.map((page) => (
-          <button
-            key={page.id}
-            onClick={() => setActivePage(page.id)}
-            className={`px-3 py-1 text-xs rounded whitespace-nowrap transition-colors ${
-              page.id === activePageId
-                ? 'bg-[#f3f4f6] text-[#111827]'
-                : 'text-[#6b7280] hover:text-[#374151] hover:bg-[#f0f2f4]'
-            }`}
-          >
-            {page.name}
-          </button>
-        ))}
+        {pages.map((page) => {
+          const isActive = page.id === activePageId
+          return (
+            <div
+              key={page.id}
+              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded whitespace-nowrap transition-colors group ${
+                isActive
+                  ? 'bg-[#f3f4f6] text-[#111827]'
+                  : 'text-[#6b7280] hover:text-[#374151] hover:bg-[#f0f2f4]'
+              }`}
+            >
+              <button
+                onClick={() => setActivePage(page.id)}
+                className="focus:outline-none"
+              >
+                {page.name}
+              </button>
+              {/* X close button — always visible on active, visible on hover for others */}
+              <button
+                onClick={(e) => closeTab(page.id, e)}
+                className={`rounded p-0.5 transition-colors ${
+                  isActive
+                    ? 'text-[#6b7280] hover:text-[#111827] hover:bg-[#e5e7eb]'
+                    : 'text-transparent group-hover:text-[#9ca3af] hover:!text-[#374151] hover:bg-[#e5e7eb]'
+                }`}
+                title="Close project"
+              >
+                <X size={10} />
+              </button>
+            </div>
+          )
+        })}
+
+        {/* Add new project */}
         <button
           onClick={() => addPage()}
           className="p-1 text-[#9ca3af] hover:text-[#374151] hover:bg-[#f0f2f4] rounded"
-          title="Add page"
+          title="New project"
         >
           <Plus size={13} />
         </button>
-        {pages.length > 1 && (
-          <button
-            onClick={() => activePageId && deletePage(activePageId)}
-            className="p-1 text-[#9ca3af] hover:text-red-400 hover:bg-[#f0f2f4] rounded"
-            title="Delete page"
-          >
-            <Trash2 size={13} />
-          </button>
-        )}
       </div>
 
       {/* Separator */}
@@ -157,7 +192,7 @@ export function TopToolbar() {
         Preview
       </button>
 
-      {/* Reset zoom button */}
+      {/* Fit to screen */}
       <button
         onClick={resetCanvasTransform}
         className="p-1.5 text-[#6b7280] hover:text-[#111827] hover:bg-[#f3f4f6] rounded"

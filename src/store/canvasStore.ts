@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
+import { persist } from 'zustand/middleware'
 import type { CanvasElement, PageDefinition, StyleProps } from '../types'
 import { generateId } from '../lib/idGenerator'
 import { getDefaultStyle } from '../lib/styleUtils'
@@ -40,7 +41,7 @@ interface CanvasState {
   resetCanvasTransform: () => void
 }
 
-function createDefaultPage(name = 'Page 1'): PageDefinition {
+function createDefaultPage(name = 'Project 1'): PageDefinition {
   return {
     id: generateId('page'),
     name,
@@ -58,237 +59,241 @@ function createDefaultPage(name = 'Page 1'): PageDefinition {
 const defaultPage = createDefaultPage()
 
 export const useCanvasStore = create<CanvasState>()(
-  immer((set, get) => ({
-    pages: [defaultPage],
-    activePageId: defaultPage.id,
-    canvasTransform: { scale: 1, offsetX: 0, offsetY: 0 },
+  persist(
+    immer((set, get) => ({
+      pages: [defaultPage],
+      activePageId: defaultPage.id,
+      canvasTransform: { scale: 1, offsetX: 0, offsetY: 0 },
 
-    activePage: () => {
-      const { pages, activePageId } = get()
-      return pages.find((p) => p.id === activePageId) ?? null
-    },
+      activePage: () => {
+        const { pages, activePageId } = get()
+        return pages.find((p) => p.id === activePageId) ?? null
+      },
 
-    addPage: (name) => {
-      const page = createDefaultPage(name ?? `Page ${get().pages.length + 1}`)
-      set((state) => {
-        state.pages.push(page)
-        state.activePageId = page.id
-      })
-    },
-
-    setActivePage: (pageId) => {
-      set((state) => {
-        state.activePageId = pageId
-      })
-    },
-
-    updatePage: (pageId, partial) => {
-      set((state) => {
-        const page = state.pages.find((p) => p.id === pageId)
-        if (!page) return
-        Object.assign(page, { ...partial, updatedAt: new Date().toISOString() })
-      })
-    },
-
-    deletePage: (pageId) => {
-      set((state) => {
-        const idx = state.pages.findIndex((p) => p.id === pageId)
-        if (idx === -1 || state.pages.length === 1) return
-        state.pages.splice(idx, 1)
-        if (state.activePageId === pageId) {
-          state.activePageId = state.pages[Math.max(0, idx - 1)].id
-        }
-      })
-    },
-
-    addElement: (element, parentId = null) => {
-      set((state) => {
-        const page = state.pages.find((p) => p.id === state.activePageId)
-        if (!page) return
-
-        const el = { ...element, parentId: parentId ?? null }
-        page.elements[el.id] = el
-
-        if (parentId && page.elements[parentId]) {
-          page.elements[parentId].children.push(el.id)
-        } else {
-          page.rootIds.push(el.id)
-        }
-        page.updatedAt = new Date().toISOString()
-      })
-    },
-
-    updateElement: (id, partial) => {
-      set((state) => {
-        const page = state.pages.find((p) => p.id === state.activePageId)
-        if (!page || !page.elements[id]) return
-        Object.assign(page.elements[id], partial)
-        page.updatedAt = new Date().toISOString()
-      })
-    },
-
-    updateElementStyle: (id, style) => {
-      set((state) => {
-        const page = state.pages.find((p) => p.id === state.activePageId)
-        if (!page || !page.elements[id]) return
-        Object.assign(page.elements[id].style, style)
-        page.updatedAt = new Date().toISOString()
-      })
-    },
-
-    removeElement: (id) => {
-      set((state) => {
-        const page = state.pages.find((p) => p.id === state.activePageId)
-        if (!page || !page.elements[id]) return
-
-        const el = page.elements[id]
-        // Collect all descendants
-        const toRemove = [id, ...collectDescendants(page.elements as Record<string, CanvasElement>, id)]
-
-        // Remove from parent
-        if (el.parentId && page.elements[el.parentId]) {
-          page.elements[el.parentId].children = page.elements[el.parentId].children.filter(
-            (cid) => cid !== id
-          )
-        } else {
-          page.rootIds = page.rootIds.filter((rid) => rid !== id)
-        }
-
-        // Delete all
-        toRemove.forEach((rid) => {
-          delete page.elements[rid]
+      addPage: (name) => {
+        const page = createDefaultPage(name ?? `Project ${get().pages.length + 1}`)
+        set((state) => {
+          state.pages.push(page)
+          state.activePageId = page.id
         })
-        page.updatedAt = new Date().toISOString()
-      })
-    },
+      },
 
-    moveElement: (elementId, newParentId, atIndex) => {
-      set((state) => {
-        const page = state.pages.find((p) => p.id === state.activePageId)
-        if (!page || !page.elements[elementId]) return
+      setActivePage: (pageId) => {
+        set((state) => {
+          state.activePageId = pageId
+        })
+      },
 
-        const el = page.elements[elementId]
+      updatePage: (pageId, partial) => {
+        set((state) => {
+          const page = state.pages.find((p) => p.id === pageId)
+          if (!page) return
+          Object.assign(page, { ...partial, updatedAt: new Date().toISOString() })
+        })
+      },
 
-        // Remove from old parent
-        if (el.parentId && page.elements[el.parentId]) {
-          page.elements[el.parentId].children = page.elements[el.parentId].children.filter(
-            (id) => id !== elementId
-          )
-        } else {
-          page.rootIds = page.rootIds.filter((id) => id !== elementId)
-        }
-
-        // Add to new parent
-        el.parentId = newParentId
-        if (newParentId && page.elements[newParentId]) {
-          if (atIndex !== undefined) {
-            page.elements[newParentId].children.splice(atIndex, 0, elementId)
-          } else {
-            page.elements[newParentId].children.push(elementId)
+      deletePage: (pageId) => {
+        set((state) => {
+          const idx = state.pages.findIndex((p) => p.id === pageId)
+          if (idx === -1 || state.pages.length === 1) return
+          state.pages.splice(idx, 1)
+          if (state.activePageId === pageId) {
+            state.activePageId = state.pages[Math.max(0, idx - 1)].id
           }
-        } else {
-          if (atIndex !== undefined) {
-            page.rootIds.splice(atIndex, 0, elementId)
+        })
+      },
+
+      addElement: (element, parentId = null) => {
+        set((state) => {
+          const page = state.pages.find((p) => p.id === state.activePageId)
+          if (!page) return
+
+          const el = { ...element, parentId: parentId ?? null }
+          page.elements[el.id] = el
+
+          if (parentId && page.elements[parentId]) {
+            page.elements[parentId].children.push(el.id)
           } else {
-            page.rootIds.push(elementId)
+            page.rootIds.push(el.id)
           }
+          page.updatedAt = new Date().toISOString()
+        })
+      },
+
+      updateElement: (id, partial) => {
+        set((state) => {
+          const page = state.pages.find((p) => p.id === state.activePageId)
+          if (!page || !page.elements[id]) return
+          Object.assign(page.elements[id], partial)
+          page.updatedAt = new Date().toISOString()
+        })
+      },
+
+      updateElementStyle: (id, style) => {
+        set((state) => {
+          const page = state.pages.find((p) => p.id === state.activePageId)
+          if (!page || !page.elements[id]) return
+          Object.assign(page.elements[id].style, style)
+          page.updatedAt = new Date().toISOString()
+        })
+      },
+
+      removeElement: (id) => {
+        set((state) => {
+          const page = state.pages.find((p) => p.id === state.activePageId)
+          if (!page || !page.elements[id]) return
+
+          const el = page.elements[id]
+          const toRemove = [id, ...collectDescendants(page.elements as Record<string, CanvasElement>, id)]
+
+          if (el.parentId && page.elements[el.parentId]) {
+            page.elements[el.parentId].children = page.elements[el.parentId].children.filter(
+              (cid) => cid !== id
+            )
+          } else {
+            page.rootIds = page.rootIds.filter((rid) => rid !== id)
+          }
+
+          toRemove.forEach((rid) => {
+            delete page.elements[rid]
+          })
+          page.updatedAt = new Date().toISOString()
+        })
+      },
+
+      moveElement: (elementId, newParentId, atIndex) => {
+        set((state) => {
+          const page = state.pages.find((p) => p.id === state.activePageId)
+          if (!page || !page.elements[elementId]) return
+
+          const el = page.elements[elementId]
+
+          if (el.parentId && page.elements[el.parentId]) {
+            page.elements[el.parentId].children = page.elements[el.parentId].children.filter(
+              (id) => id !== elementId
+            )
+          } else {
+            page.rootIds = page.rootIds.filter((id) => id !== elementId)
+          }
+
+          el.parentId = newParentId
+          if (newParentId && page.elements[newParentId]) {
+            if (atIndex !== undefined) {
+              page.elements[newParentId].children.splice(atIndex, 0, elementId)
+            } else {
+              page.elements[newParentId].children.push(elementId)
+            }
+          } else {
+            if (atIndex !== undefined) {
+              page.rootIds.splice(atIndex, 0, elementId)
+            } else {
+              page.rootIds.push(elementId)
+            }
+          }
+          page.updatedAt = new Date().toISOString()
+        })
+      },
+
+      reorderElements: (parentId, fromIndex, toIndex) => {
+        set((state) => {
+          const page = state.pages.find((p) => p.id === state.activePageId)
+          if (!page) return
+
+          const list = parentId && page.elements[parentId]
+            ? page.elements[parentId].children
+            : page.rootIds
+
+          const [moved] = list.splice(fromIndex, 1)
+          list.splice(toIndex, 0, moved)
+          page.updatedAt = new Date().toISOString()
+        })
+      },
+
+      duplicateElement: (id) => {
+        const page = get().activePage()
+        if (!page || !page.elements[id]) return null
+
+        const newId = generateId('el')
+        const original = page.elements[id]
+        const cloned: CanvasElement = {
+          ...structuredClone(original),
+          id: newId,
+          name: `${original.name} copy`,
+          style: {
+            ...original.style,
+            x: (original.style.x ?? 0) + 20,
+            y: (original.style.y ?? 0) + 20,
+          },
+          children: [],
         }
-        page.updatedAt = new Date().toISOString()
-      })
-    },
 
-    reorderElements: (parentId, fromIndex, toIndex) => {
-      set((state) => {
-        const page = state.pages.find((p) => p.id === state.activePageId)
-        if (!page) return
+        set((state) => {
+          const pg = state.pages.find((p) => p.id === state.activePageId)
+          if (!pg) return
+          pg.elements[newId] = cloned
+          if (original.parentId && pg.elements[original.parentId]) {
+            pg.elements[original.parentId].children.push(newId)
+          } else {
+            pg.rootIds.push(newId)
+          }
+        })
 
-        const list = parentId && page.elements[parentId]
-          ? page.elements[parentId].children
-          : page.rootIds
+        return newId
+      },
 
-        const [moved] = list.splice(fromIndex, 1)
-        list.splice(toIndex, 0, moved)
-        page.updatedAt = new Date().toISOString()
-      })
-    },
-
-    duplicateElement: (id) => {
-      const page = get().activePage()
-      if (!page || !page.elements[id]) return null
-
-      const newId = generateId('el')
-      const original = page.elements[id]
-      const cloned: CanvasElement = {
-        ...structuredClone(original),
-        id: newId,
-        name: `${original.name} copy`,
-        style: {
-          ...original.style,
-          x: (original.style.x ?? 0) + 20,
-          y: (original.style.y ?? 0) + 20,
-        },
-        children: [],
-      }
-
-      set((state) => {
-        const pg = state.pages.find((p) => p.id === state.activePageId)
-        if (!pg) return
-        pg.elements[newId] = cloned
-        if (original.parentId && pg.elements[original.parentId]) {
-          pg.elements[original.parentId].children.push(newId)
-        } else {
-          pg.rootIds.push(newId)
+      createElement: (type, x, y, parentId = null) => {
+        const id = generateId('el')
+        const defaultStyle = getDefaultStyle(type)
+        const base = {
+          id,
+          name: type.charAt(0).toUpperCase() + type.slice(1),
+          locked: false,
+          visible: true,
+          parentId: parentId ?? null,
+          children: [],
+          style: { ...defaultStyle, x, y },
         }
-      })
 
-      return newId
-    },
+        let element: CanvasElement
 
-    createElement: (type, x, y, parentId = null) => {
-      const id = generateId('el')
-      const defaultStyle = getDefaultStyle(type)
-      const base = {
-        id,
-        name: type.charAt(0).toUpperCase() + type.slice(1),
-        locked: false,
-        visible: true,
-        parentId: parentId ?? null,
-        children: [],
-        style: { ...defaultStyle, x, y },
-      }
+        switch (type) {
+          case 'text':
+            element = { ...base, type: 'text', content: 'Text' }
+            break
+          case 'button':
+            element = { ...base, type: 'button', label: 'Button', variant: 'primary' }
+            break
+          case 'image':
+            element = { ...base, type: 'image', src: '', alt: 'Image', objectFit: 'cover' }
+            break
+          case 'container':
+          default:
+            element = { ...base, type: 'container' }
+            break
+        }
 
-      let element: CanvasElement
+        get().addElement(element, parentId)
+        return id
+      },
 
-      switch (type) {
-        case 'text':
-          element = { ...base, type: 'text', content: 'Text' }
-          break
-        case 'button':
-          element = { ...base, type: 'button', label: 'Button', variant: 'primary' }
-          break
-        case 'image':
-          element = { ...base, type: 'image', src: '', alt: 'Image', objectFit: 'cover' }
-          break
-        case 'container':
-        default:
-          element = { ...base, type: 'container' }
-          break
-      }
+      setCanvasTransform: (transform) => {
+        set((state) => {
+          Object.assign(state.canvasTransform, transform)
+        })
+      },
 
-      get().addElement(element, parentId)
-      return id
-    },
-
-    setCanvasTransform: (transform) => {
-      set((state) => {
-        Object.assign(state.canvasTransform, transform)
-      })
-    },
-
-    resetCanvasTransform: () => {
-      set((state) => {
-        state.canvasTransform = { scale: 1, offsetX: 0, offsetY: 0 }
-      })
-    },
-  }))
+      resetCanvasTransform: () => {
+        set((state) => {
+          state.canvasTransform = { scale: 1, offsetX: 0, offsetY: 0 }
+        })
+      },
+    })),
+    {
+      name: 'builder-canvas',
+      partialize: (state) => ({
+        pages: state.pages,
+        activePageId: state.activePageId,
+      }),
+    }
+  )
 )

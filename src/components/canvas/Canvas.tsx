@@ -76,15 +76,48 @@ export function Canvas() {
     [clearSelection]
   )
 
-  // Click on artboard background (not on an element)
-  const handleArtboardClick = useCallback(
+  // Artboard drag-to-move logic
+  const artboardDrag = useRef<{
+    startX: number; startY: number
+    startOffsetX: number; startOffsetY: number
+    moved: boolean
+  } | null>(null)
+
+  const handleArtboardMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        clearSelection()
-        setPageSelected(true)
+      if (e.target !== e.currentTarget) return
+      if (e.button !== 0) return
+      e.stopPropagation()
+      const { offsetX: ox, offsetY: oy } = useCanvasStore.getState().canvasTransform
+      artboardDrag.current = { startX: e.clientX, startY: e.clientY, startOffsetX: ox, startOffsetY: oy, moved: false }
+
+      function onMove(ev: MouseEvent) {
+        const d = artboardDrag.current
+        if (!d) return
+        const dx = ev.clientX - d.startX
+        const dy = ev.clientY - d.startY
+        if (!d.moved && Math.hypot(dx, dy) < 4) return
+        d.moved = true
+        setCanvasTransform({ offsetX: d.startOffsetX + dx, offsetY: d.startOffsetY + dy })
       }
+
+      function onUp(ev: MouseEvent) {
+        const d = artboardDrag.current
+        artboardDrag.current = null
+        window.removeEventListener('mousemove', onMove)
+        window.removeEventListener('mouseup', onUp)
+        if (!d || !d.moved) {
+          // It was a plain click — select the artboard
+          clearSelection()
+          setPageSelected(true)
+        }
+        ev.stopPropagation()
+      }
+
+      window.addEventListener('mousemove', onMove)
+      window.addEventListener('mouseup', onUp)
     },
-    [clearSelection]
+    [clearSelection, setCanvasTransform]
   )
 
   if (!page) return null
@@ -166,8 +199,9 @@ export function Canvas() {
             border: pageSelected ? 'none' : '1px solid rgba(0,0,0,0.1)',
             borderRadius: 4,
             overflow: 'visible',
+            cursor: 'grab',
           }}
-          onClick={handleArtboardClick}
+          onMouseDown={handleArtboardMouseDown}
         >
           {/* Drop indicator */}
           {isOver && (
